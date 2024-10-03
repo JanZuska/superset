@@ -1321,23 +1321,17 @@ class ExploreMixin:  # pylint: disable=too-many-public-methods
         rls_filters_for_column = []
 
         if rls_filters := self.get_sqla_row_level_filters(template_processor):
-            parsable_statement = "SELECT 1 WHERE"
-
-            for rls_filter in rls_filters:
-                parsable_statement += f" {str(rls_filter)} "
-                if rls_filter != rls_filters[-1]:
-                    parsable_statement += "AND"
-
-            predicates = SQLStatement(
-                parsable_statement, engine=self.db_engine_spec.engine
-            ).get_predicates()
-
-            for predicate in predicates:
-                column = predicate.find(exp.Column)
-                if column and column.output_name == column_name:
-                    rls_filters_for_column.append(
+            for rls in rls_filters:
+                predicates = SQLStatement(
+                    str(rls), engine=self.db_engine_spec.engine
+                ).get_predicates()
+                rls_filters_for_column.extend(
+                    [
                         TextClause(str(predicate.sql(comments=False)))
-                    )
+                        for predicate in predicates
+                        if predicate.find(exp.Column).output_name == column_name
+                    ]
+                )
 
         return rls_filters_for_column
 

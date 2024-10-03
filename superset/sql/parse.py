@@ -226,6 +226,16 @@ class BaseSQLStatement(Generic[InternalRepresentation]):
         """
         raise NotImplementedError()
 
+    def get_predicates(self) -> list[exp.Predicate]:
+        """
+        Return the predicates for a SQL statement.
+
+            >>> statement = SQLStatement("SELECT * FROM table WHERE column = 'value'")
+            >>> statement.get_predicates()
+            ["COLUMN = 'value'"]
+        """
+        raise NotImplementedError()
+
     def __str__(self) -> str:
         return self.format()
 
@@ -369,24 +379,13 @@ class SQLStatement(BaseSQLStatement[exp.Expression]):
 
     def get_predicates(self) -> list[exp.Predicate]:
         """
-        Return the predicates for the SQL statement.
+        Return the predicates for a SQL statement.
 
             >>> statement = SQLStatement("SELECT * FROM table WHERE column = 'value'")
             >>> statement.get_predicates()
             ["COLUMN = 'value'"]
         """
-        predicates = []
-        where_clauses = self._parsed.find_all(exp.Where)
-
-        if not where_clauses:
-            return []
-
-        for where_clause in where_clauses:
-            where_predicates = where_clause.find_all(exp.Predicate)
-            for pred in where_predicates:
-                predicates.append(pred)
-
-        return predicates
+        return self._parsed.find_all(exp.Predicate)
 
 
 class KQLSplitState(enum.Enum):
@@ -543,6 +542,16 @@ class KustoKQLStatement(BaseSQLStatement[str]):
         :return: True if the statement mutates data.
         """
         return self._parsed.startswith(".") and not self._parsed.startswith(".show")
+
+    def get_predicates(self) -> list[exp.Predicate]:
+        """
+        Return the predicates for a SQL statement.
+
+            >>> statement = KustoKQLStatement("StormEvents | where InjuriesDirect > 50")
+            >>> statement.get_predicates()
+            ["InjuriesDirect > 50"]
+        """
+        return NotImplementedError()
 
 
 class SQLScript:

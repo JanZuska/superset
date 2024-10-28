@@ -28,6 +28,7 @@ import {
 } from 'src/explore/components/controls/DateFilterControl/types';
 
 export const FRAME_OPTIONS: SelectOptionType[] = [
+  { value: 'Custom Calendar', label: t('Custom Calendar') },
   { value: 'Common', label: t('Last') },
   { value: 'Calendar', label: t('Previous') },
   { value: 'Custom', label: t('Custom') },
@@ -141,6 +142,12 @@ export enum DateFilterTestKey {
   ApplyButton = 'date-filter-control__apply-button',
 }
 
+moment.locale('en', {
+  week: {
+    dow: 1,
+  },
+});
+
 export const CUSTOM_CALENDAR_RANGE_OPTIONS: Record<
   string,
   [moment.Moment, moment.Moment]
@@ -161,6 +168,22 @@ export const CUSTOM_CALENDAR_RANGE_OPTIONS: Record<
   [t('Current Year')]: [
     moment().startOf('year'),
     moment().endOf('year').add(1, 'days'),
+  ],
+  [t('Week-to-Date')]: [
+    moment().startOf('week'),
+    moment(),
+  ],
+  [t('Month-to-Date')]: [
+    moment().startOf('month'),
+    moment(),
+  ],
+  [t('Quarter-to-Date')]: [
+    moment().startOf('quarter'),
+    moment(),
+  ],
+  [t('Year-to-Date')]: [
+    moment().startOf('year'),
+    moment(),
   ],
   [t('Yesterday')]: [
     moment().subtract(1, 'days'),
@@ -201,5 +224,5 @@ export const CUSTOM_CALENDAR_RANGE_OPTIONS: Record<
 };
 
 export const CUSTOM_CALENDAR_RANGE_VALUES_SET = new Set(
-  ['custom_calendar_range_from', 'custom_calendar_range_value_to']
+  Object.keys(CUSTOM_CALENDAR_RANGE_OPTIONS)
 );

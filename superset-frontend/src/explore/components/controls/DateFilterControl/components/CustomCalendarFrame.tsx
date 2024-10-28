@@ -4,6 +4,12 @@ import { FrameComponentProps } from 'src/explore/components/controls/DateFilterC
 import moment, { Moment } from 'moment';
 import { CUSTOM_CALENDAR_RANGE_OPTIONS } from 'src/explore/components/controls/DateFilterControl/utils';
 
+moment.locale('en', {
+  week: {
+    dow: 1,
+  },
+});
+
 export function CustomCalendarFrame(props: FrameComponentProps) {
   const { RangePicker } = DatePicker;
   const spaceStyle: React.CSSProperties = { width: '100%' };

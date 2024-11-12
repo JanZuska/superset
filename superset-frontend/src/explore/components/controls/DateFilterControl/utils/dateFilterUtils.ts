@@ -23,6 +23,7 @@ import { useSelector } from 'react-redux';
 import {
   COMMON_RANGE_VALUES_SET,
   CALENDAR_RANGE_VALUES_SET,
+  CUSTOM_CALENDAR_RANGE_VALUES_SET,
   customTimeRangeDecode,
   isDateRange
 } from '.';
@@ -55,7 +56,7 @@ export const guessFrame = (timeRange: string): FrameType => {
   if (CALENDAR_RANGE_VALUES_SET.has(timeRange)) {
     return 'Calendar';
   }
-  if (isDateRange(timeRange)) {
+  if (isDateRange(timeRange) || CUSTOM_CALENDAR_RANGE_VALUES_SET.has(timeRange)) {
     return 'Custom Calendar';
   }
   if (timeRange === NO_TIME_RANGE) {

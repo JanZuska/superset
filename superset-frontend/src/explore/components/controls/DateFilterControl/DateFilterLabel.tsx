@@ -45,12 +45,16 @@ import {
   FRAME_OPTIONS,
   guessFrame,
   useDefaultTimeFilter,
+  CUSTOM_CALENDAR_RANGE_OPTIONS,
+  CUSTOM_CALENDAR_RANGE_VALUES_SET,
+  isDateRange,
 } from './utils';
 import {
   CommonFrame,
   CalendarFrame,
   CustomFrame,
   AdvancedFrame,
+  CustomCalendarFrame,
   DateLabel,
 } from './components';
 import { CurrentCalendarFrame } from './components/CurrentCalendarFrame';
@@ -209,6 +213,35 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
           setTooltipTitle(
             getTooltipTitle(labelIsTruncated, value, actualRange),
           );
+        } else if (guessedFrame === 'Custom Calendar') {
+          if (isDateRange(value)) {
+            setActualTimeRange(value);
+            setTooltipTitle(
+              getTooltipTitle(labelIsTruncated, actualRange, value),
+            );
+          } else {
+            const customValueKey = CUSTOM_CALENDAR_RANGE_VALUES_SET.has(value)
+              ? value
+              : undefined;
+            if (customValueKey) {
+              const presetValue = CUSTOM_CALENDAR_RANGE_OPTIONS[customValueKey];
+              const presetValueString = `${presetValue[0].format(
+                'YYYY-MM-DD',
+              )} : ${presetValue[1].format('YYYY-MM-DD')}`;
+              setActualTimeRange(customValueKey);
+              fetchTimeRange(presetValueString).then(
+                ({ value: fetchedValue }) => {
+                  setTooltipTitle(
+                    getTooltipTitle(
+                      labelIsTruncated,
+                      customValueKey,
+                      fetchedValue,
+                    ),
+                  );
+                },
+              );
+            }
+          }
         } else {
           setActualTimeRange(actualRange || '');
           setTooltipTitle(
@@ -218,7 +251,18 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
         setValidTimeRange(true);
       }
       setLastFetchedTimeRange(value);
-      setEvalResponse(actualRange || value);
+      if (
+        guessedFrame === 'Custom Calendar' &&
+        CUSTOM_CALENDAR_RANGE_VALUES_SET.has(value)
+      ) {
+        const presetValue = CUSTOM_CALENDAR_RANGE_OPTIONS[value];
+        const presetValueRange = `${presetValue[0].format(
+          'YYYY-MM-DD',
+        )} ≤ col < ${presetValue[1].format('YYYY-MM-DD')}`;
+        setEvalResponse(presetValueRange);
+      } else {
+        setEvalResponse(actualRange || value);
+      }
     });
   }, [guessedFrame, labelIsTruncated, labelRef, value]);
 
@@ -235,6 +279,12 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
           if (error) {
             setEvalResponse(error || '');
             setValidTimeRange(false);
+          } else if (CUSTOM_CALENDAR_RANGE_VALUES_SET.has(timeRangeValue)) {
+            const presetValue = CUSTOM_CALENDAR_RANGE_OPTIONS[timeRangeValue];
+            const presetValueRange = `${presetValue[0].format(
+              'YYYY-MM-DD',
+            )} ≤ col < ${presetValue[1].format('YYYY-MM-DD')}`;
+            setEvalResponse(presetValueRange);
           } else {
             setEvalResponse(actualRange || '');
             setValidTimeRange(true);
@@ -306,6 +356,12 @@ export default function DateFilterLabel(props: DateFilterControlProps) {
       )}
       {frame === 'Advanced' && (
         <AdvancedFrame value={timeRangeValue} onChange={setTimeRangeValue} />
+      )}
+      {frame === 'Custom Calendar' && (
+        <CustomCalendarFrame
+          value={timeRangeValue}
+          onChange={setTimeRangeValue}
+        />
       )}
       {frame === 'Custom' && (
         <CustomFrame value={timeRangeValue} onChange={setTimeRangeValue} />
